@@ -1,0 +1,12 @@
+{
+    "name": "danielbachhuber/composer-lock-updater",
+    "description": "Updates `composer.lock` files for the repositories it monitors.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Daniel Bachhuber",
+            "email": "daniel@handbuilt.co"
+        }
+    ],
+    "require": {}
+}
