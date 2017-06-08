@@ -1,6 +1,6 @@
 {
     "name": "danielbachhuber/composer-lock-updater",
-    "description": "Updates `composer.lock` files for the repositories it monitors.",
+    "description": "Updates composer.lock files for the repositories it monitors.",
     "license": "MIT",
     "authors": [
         {
@@ -8,5 +8,8 @@
             "email": "daniel@handbuilt.co"
         }
     ],
-    "require": {}
+    "require": {},
+    "autoload": {
+        "psr-4": {"CLU\\": "src/"}
+    }
 }
