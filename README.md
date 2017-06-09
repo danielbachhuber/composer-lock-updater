@@ -9,6 +9,8 @@ More specifically, it:
 2. Runs `composer update` within the working directory.
 3. Submits a pull request if changes are detected to a tracked `composer.lock file.
 
+[Using](#using) | [Automating](#automating)
+
 ## Using
 
 Before you use composer-lock-updater, ensure the `composer`, `git`, and `hub` executables are present on the filesystem. The current user will also need push access to the GitHub repository.
