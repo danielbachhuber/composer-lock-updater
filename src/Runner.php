@@ -68,6 +68,9 @@ class Runner {
 		// Check whether composer.lock was modifed.
 		$output = array();
 		exec( 'git status -s composer.lock', $output, $return_code );
+		if ( 0 !== $return_code ) {
+			Logger::error( 'Failed to detect changes to composer.lock.' );
+		}
 		if ( empty( $output ) ) {
 			Logger::success( 'No changes detected to composer.lock' );
 			exit;
