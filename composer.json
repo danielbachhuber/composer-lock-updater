@@ -1,6 +1,6 @@
 {
     "name": "danielbachhuber/composer-lock-updater",
-    "description": "Updates composer.lock files for the repositories it monitors.",
+    "description": "Run composer-lock-updater in your CI system for bot-powered composer.lock pull requests.",
     "license": "MIT",
     "authors": [
         {

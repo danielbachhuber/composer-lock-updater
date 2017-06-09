@@ -1,15 +1,15 @@
 composer-lock-updater
 =====================
 
-Updates composer.lock files for the repositories it monitors.
+Run composer-lock-updater in your CI system for bot-powered `composer.lock` pull requests.
 
-More specifically, it:
+When you run `clu`, it:
 
 1. Clones a given GitHub repository to a working `/tmp/` directory.
 2. Runs `composer update` within the working directory.
 3. Submits a pull request if changes are detected to a tracked `composer.lock` file.
 
-Run composer-lock-updater in your CI system for bot-powered `composer.lock` pull requests.
+Et voila! Now your dependencies are no longer six months out of date.
 
 [Using](#using) | [Automating](#automating)
 
