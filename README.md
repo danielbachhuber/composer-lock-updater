@@ -3,7 +3,11 @@ composer-lock-updater
 
 Updates composer.lock files for the repositories it monitors.
 
-When the composer.lock file changes, it submits a pull request to the GitHub repo.
+Specifically, when the script is run, it:
+
+1. Clones a given GitHub repository to a working `/tmp/` directory.
+2. Runs `composer update` within the working directory.
+3. Submits a pull request if changes are detected to a tracked `composer.lock file.
 
 ## Using
 
