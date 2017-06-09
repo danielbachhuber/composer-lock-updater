@@ -45,6 +45,11 @@ class Runner {
 			Logger::error( 'Composer failed to install dependencies.' );
 		}
 
+		passthru( 'composer clear-cache', $return_code );
+		if ( 0 !== $return_code ) {
+			Logger::error( 'Failed to clear composer cache.' );
+		}
+
 		// Run composer update, but capture output for the commit message if needed.
 		$cmd = 'composer update --no-progress --no-dev --no-interaction';
 		Logger::info( $cmd );
