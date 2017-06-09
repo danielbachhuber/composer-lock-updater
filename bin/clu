@@ -1,7 +1,14 @@
 #!/usr/bin/env php
 <?php
 
-require_once dirname( __DIR__ ) . '/vendor/autoload.php';
+if ( file_exists( $path = __DIR__ . '/../vendor/autoload.php' )
+    || file_exists( $path = __DIR__ . '/../../autoload.php' )
+    || file_exists( $path = __DIR__ . '/../../../autoload.php' )
+) {
+	include_once($path);
+} else {
+	throw new \Exception('Could not locate autoload.php');
+}
 
 $repo_url = ! empty( $argv[1] ) ? $argv[1] : '';
 if ( getenv( 'CLU_GIT_URL' ) ) {
