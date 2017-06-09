@@ -7,6 +7,14 @@ use CLU\Logger;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+$repo_url = ! empty( $argv[1] ) ? $argv[1] : '';
+if ( getenv( 'CLU_GIT_URL' ) ) {
+	$repo_url = getenv( 'CLU_GIT_URL' );
+}
+if ( ! $repo_url ) {
+	Logger::error( 'Git URL must be provided as first argument or with CLU_GIT_URL' );
+}
+
 // Check that Git, Composer, and Hub are available on the filesystem
 $execs = array( 'git', 'composer', 'hub' );
 foreach( $execs as $exec ) {
@@ -16,9 +24,6 @@ foreach( $execs as $exec ) {
 	}
 }
 Logger::info( 'Found required executables on system: ' . implode( ', ', $execs ) );
-
-// @todo Check that the appropriate env variables are set.
-$repo_url = 'git@github.com:pantheon-systems/solr-power.git';
 
 // Clone the repository to a working directory.
 $target_dir = sys_get_temp_dir() . '/composer-update-' . md5( mt_rand() . time() );
