@@ -35,6 +35,7 @@ class Runner {
 
 		// Run all future commands from the context of the target directory.
 		chdir( $target_dir );
+		Logger::info( 'Changed into directory: ' . getcwd() );
 
 		// Perform an initial install to sanity check the package.
 		$cmd = 'composer install --no-dev --no-interaction';
