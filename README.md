@@ -66,7 +66,7 @@ Because composer-lock-updater is running on the `after_script` step, make sure t
 
 ## Run locally
 
-Before you use composer-lock-updater locally, ensure the `composer`, `git`, and `hub` executables are present on the filesystem. The current user will need to be authenticated with GitHub (both for push and creating pull requests).
+Before you use composer-lock-updater locally, ensure the `composer`, `git`, and [`hub`](https://github.com/github/hub) executables are present on the filesystem. The current user will need to be authenticated with GitHub (both for push and creating pull requests).
 
 Install composer-lock-updater with:
 
