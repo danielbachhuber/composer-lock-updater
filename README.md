@@ -3,7 +3,7 @@ composer-lock-updater
 
 Updates composer.lock files for the repositories it monitors.
 
-Specifically, when the script is run, it:
+More specifically, it:
 
 1. Clones a given GitHub repository to a working `/tmp/` directory.
 2. Runs `composer update` within the working directory.
@@ -11,8 +11,10 @@ Specifically, when the script is run, it:
 
 ## Using
 
-Run the process with:
+Before you use composer-lock-updater, you'll need to ensure the `composer`, `git`, and `hub` executables are present on the filesystem. The user running the process will also need commit access to the GitHub repository.
 
-    php script.php
+Once you've satisfied these dependencies, using composer-lock-updater is a matter of running:
 
-Requires `composer`, `git`, and `hub` executables to be present on the filesystem.
+    php script.php <git-url>
+
+The script provides sufficiently verbose output for debugging purposes.
