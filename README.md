@@ -33,14 +33,21 @@ To configure composer-lock-updater to run on Travis master branch builds, add th
 
     after_script:
       - |
+        ###
+        # Only run on one job of a master branch build
+        ###
         if [ -z "$CLU_RUN" ] || [ "master" != "$TRAVIS_BRANCH"] ; then
           echo "composer.lock update disabled for this build"
           return
         fi
+        ###
         # Install composer-lock-updater
+        ###
         export PATH="$HOME/.composer/vendor/bin:$PATH"
         composer global require danielbachhuber/composer-lock-updater
-        # Install hub
+        ###
+        # Install hub for creating GitHub pull requests
+        ###
         wget -O hub.tgz https://github.com/github/hub/releases/download/v2.2.9/hub-linux-amd64-2.2.9.tgz
         tar -zxvf hub.tgz
         export PATH=$PATH:$PWD/hub-linux-amd64-2.2.9/bin/
@@ -53,7 +60,9 @@ To configure composer-lock-updater to run on Travis master branch builds, add th
         fi
         # Restore command traces for the rest of the script
         set -x
+        ###
         # Run composer-lock-updater
+        ###
         clu $CLU_REPO_URL
 
 Set `CLU_REPO_URL` in your `.travis.yml` to the Git URL you'd like to update:
