@@ -11,7 +11,7 @@ When you run `clu`, it:
 
 Et voila! Now your dependencies are no longer six months out of date.
 
-[Use with Travis CI](#use-with-travis) | [Run locally](#run-locally)
+[Use with Travis CI](#use-with-travis-ci) | [Run locally](#run-locally)
 
 ## Use with Travis CI
 
