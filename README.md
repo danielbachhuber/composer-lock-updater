@@ -56,9 +56,8 @@ To configure composer-lock-updater to run on Travis master branch builds, add th
         # Turn off command traces while dealing with the git credentials
         set +x
         echo 'Securely storing GITHUB_USER and GITHUB_TOKEN in ~/.netrc'
-        echo "machine github.com\n  login $GITHUB_USER\n  password $GITHUB_TOKEN" >> ~/.netrc
+        echo "\nmachine github.com login $GITHUB_USER password $GITHUB_TOKEN" >> ~/.netrc
         # Restore command traces for the rest of the script
-        set -x
         set -x
         ###
         # Run composer-lock-updater
