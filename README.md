@@ -53,23 +53,17 @@ To configure composer-lock-updater to run on Travis master branch builds, add th
         wget -O hub.tgz https://github.com/github/hub/releases/download/v2.2.9/hub-linux-amd64-2.2.9.tgz
         tar -zxvf hub.tgz
         export PATH=$PATH:$PWD/hub-linux-amd64-2.2.9/bin/
-        # Turn off command traces while dealing with the git credentials
-        set +x
-        echo 'Securely storing GITHUB_USER and GITHUB_TOKEN in ~/.netrc'
-        echo "\nmachine github.com login $GITHUB_USER password $GITHUB_TOKEN" >> ~/.netrc
-        # Restore command traces for the rest of the script
-        set -x
         ###
         # Run composer-lock-updater
         ###
         clu $CLU_REPO_URL
 
-Set `CLU_REPO_URL` in your `.travis.yml` to the Git HTTPS URL you'd like to update:
+To grant commit and pull request access to the Travis build, define these private environment variables in the Travis control panel:
 
-    env:
-      - CLU_REPO_URL=https://github.com/danielbachhuber/composer-lock-updater.git
+    GITHUB_TOKEN=<personal-oauth-token>
+    CLU_REPO_URL=https://<personal-oauth-token>:x-oauth-basic@github.com/<org>/<repo>.git
 
-To grant commit access to the Travis build, define `GITHUB_USER` and `GITHUB_TOKEN` private environment variables in the Travis control panel.
+Make sure to replace `<personal-oauth-token>`, `<org>` and `<repo>` with the appropriate values.
 
 Lastly, because of the `CLU_RUN` environment variable, composer-lock-updater is disabled by default. Enable it for one job per build by modifying your environment matrix:
 
