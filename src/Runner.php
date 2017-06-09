@@ -45,7 +45,9 @@ class Runner {
 			Logger::error( 'Composer failed to install dependencies.' );
 		}
 
-		passthru( 'composer outdated', $return_code );
+		$cmd = 'composer outdated';
+		Logger::info( $cmd );
+		passthru( $cmd, $return_code );
 		if ( 0 !== $return_code ) {
 			Logger::error( 'Failed to run composer outdated.' );
 		}
@@ -63,7 +65,13 @@ class Runner {
 			$status = proc_get_status( $proc );
 		}
 		$stdout = stream_get_contents( $pipes[1] );
+		if ( ! empty( $stdout ) ) {
+			Logger::info( $stdout );
+		}
 		$stderr = stream_get_contents( $pipes[2] );
+		if ( ! empty( $stderr ) ) {
+			Logger::info( $stderr );
+		}
 		proc_close( $proc );
 		if ( 0 !== $status['exitcode'] ) {
 			Logger::error( 'Composer failed to update dependencies.' );
