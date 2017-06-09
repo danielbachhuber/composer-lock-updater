@@ -92,6 +92,18 @@ class Runner {
 		}
 		Logger::info( 'Detected changes to composer.lock' );
 
+		$git_name = getenv( 'CLU_GIT_NAME' ) ? : 'composer-lock-update';
+		exec( 'git config user.name ' . escapeshellarg( $git_name ), $_, $return_code );
+		if ( 0 !== $return_code ) {
+			Logger::error( 'Failed to set git config name.' );
+		}
+		$git_email = getenv( 'CLU_GIT_EMAIL' ) ? : 'composer-lock-update@localhost';
+		exec( 'git config user.email ' . escapeshellarg( $git_email ), $_, $return_code );
+		if ( 0 !== $return_code ) {
+			Logger::error( 'Failed to set git config email.' );
+		}
+		Logger::info( 'Set git config name and email.' );
+
 		// Checkout a dated branch to make the commit
 		$date = date( 'Y-m-d' );
 		$branch_name = 'clu-' . $date . '-' . $shorthash;
