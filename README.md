@@ -9,6 +9,8 @@ More specifically, it:
 2. Runs `composer update` within the working directory.
 3. Submits a pull request if changes are detected to a tracked `composer.lock file.
 
+Run composer-lock-updater in your CI system for bot-powered `composer.lock` pull requests.
+
 [Using](#using) | [Automating](#automating)
 
 ## Using
