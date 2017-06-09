@@ -11,10 +11,14 @@ More specifically, it:
 
 ## Using
 
-Before you use composer-lock-updater, you'll need to ensure the `composer`, `git`, and `hub` executables are present on the filesystem. The user running the process will also need commit access to the GitHub repository.
+Before you use composer-lock-updater, ensure the `composer`, `git`, and `hub` executables are present on the filesystem. The current user will also need push access to the GitHub repository.
 
-Once you've satisfied these dependencies, using composer-lock-updater is a matter of running:
+Install composer-lock-updater with:
 
-    php script.php <git-url>
+    composer global require danielbachhuber/composer-lock-updater
+
+Update your `composer.lock` file with:
+
+    clu <git-url>
 
 The script provides sufficiently verbose output for debugging purposes.

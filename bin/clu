@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+
+require_once dirname( __DIR__ ) . '/vendor/autoload.php';
+
+$repo_url = ! empty( $argv[1] ) ? $argv[1] : '';
+if ( getenv( 'CLU_GIT_URL' ) ) {
+	$repo_url = getenv( 'CLU_GIT_URL' );
+}
+if ( ! $repo_url ) {
+	CLU\Logger::error( 'Git URL must be provided as first argument or with CLU_GIT_URL' );
+}
+
+$runner = new CLU\Runner( $repo_url );
+$runner->start();

@@ -9,6 +9,9 @@
         }
     ],
     "require": {},
+    "bin": [
+        "bin/clu"
+    ],
     "autoload": {
         "psr-4": {"CLU\\": "src/"}
     }
