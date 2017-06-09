@@ -38,6 +38,7 @@ class Logger {
 	 */
 	public static function error( $message ) {
 		self::line( $message, 'Error', '%R', STDERR );
+		exit(1);
 	}
 
 	/**
