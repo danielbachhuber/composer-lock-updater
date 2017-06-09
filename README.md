@@ -33,6 +33,6 @@ To configure composer-update-bot to run on Travis master branch builds, add the 
 
     @todo
 
-To grant commit access to the Travis build, generate a `CLI_SSH_PRIVATE_KEY_BASE64` environment variable and save it as a private variable:
+To grant commit access to the Travis build, generate a `CLU_SSH_PRIVATE_KEY_BASE64` environment variable and save it as a private variable:
 
     @todo 
