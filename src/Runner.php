@@ -45,9 +45,9 @@ class Runner {
 			Logger::error( 'Composer failed to install dependencies.' );
 		}
 
-		passthru( 'composer clear-cache', $return_code );
+		passthru( 'composer outdated', $return_code );
 		if ( 0 !== $return_code ) {
-			Logger::error( 'Failed to clear composer cache.' );
+			Logger::error( 'Failed to run composer outdated.' );
 		}
 
 		// Run composer update, but capture output for the commit message if needed.
