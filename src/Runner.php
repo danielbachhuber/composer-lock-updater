@@ -55,6 +55,7 @@ class Runner {
 		// Run composer update, but capture output for the commit message if needed.
 		$cmd = 'composer update --no-progress --no-dev --no-interaction';
 		Logger::info( $cmd );
+		$cmd = 'cd ' . escapeshellarg( $target_dir ) . '; ' . $cmd;
 		$proc = proc_open( $cmd, array(
 			0 => array( 'pipe', 'r' ),
 			1 => array( 'pipe', 'w' ),
