@@ -25,7 +25,7 @@ class Runner {
 		// Clone the repository to a working directory.
 		$shorthash = substr( md5( mt_rand() . time() ), 0, 7 );
 		$target_dir = sys_get_temp_dir() . '/composer-update-' . $shorthash;
-		$cmd = 'git clone ' . escapeshellarg( $this->repo_url ) . ' ' . escapeshellarg( $target_dir );
+		$cmd = 'hub clone ' . escapeshellarg( $this->repo_url ) . ' ' . escapeshellarg( $target_dir );
 		Logger::info( $cmd );
 		passthru( $cmd, $return_code );
 		if ( 0 !== $return_code ) {

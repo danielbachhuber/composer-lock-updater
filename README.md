@@ -53,26 +53,26 @@ To configure composer-lock-updater to run on Travis master branch builds, add th
         wget -O hub.tgz https://github.com/github/hub/releases/download/v2.2.9/hub-linux-amd64-2.2.9.tgz
         tar -zxvf hub.tgz
         export PATH=$PATH:$PWD/hub-linux-amd64-2.2.9/bin/
-        # Turn off command traces while dealing with the private key
+        # Turn off command traces while dealing with the git credentials
         set +x
-        if [ -n "$CLU_SSH_PRIVATE_KEY_BASE64" ]; then
-          echo 'Securely extracting CLU_SSH_PRIVATE_KEY_BASE64 into ~/.ssh/id_rsa'
-          echo $CLU_SSH_PRIVATE_KEY_BASE64 | base64 --decode > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-        fi
+        echo 'Securely storing GITHUB_USER and GITHUB_TOKEN in ~/.netrc'
+        echo "machine github.com\n  login $GITHUB_USER\n  password $GITHUB_TOKEN" >> ~/.netrc
         # Restore command traces for the rest of the script
+        set -x
         set -x
         ###
         # Run composer-lock-updater
         ###
         clu $CLU_REPO_URL
 
-Set `CLU_REPO_URL` in your `.travis.yml` to the Git URL you'd like to update:
+Set `CLU_REPO_URL` in your `.travis.yml` to the Git HTTPS URL you'd like to update:
 
     env:
-      - CLU_REPO_URL=git@github.com:danielbachhuber/composer-lock-updater.git
+      - CLU_REPO_URL=https://github.com/danielbachhuber/composer-lock-updater.git
 
-Because of the `CLU_RUN` environment variable, composer-lock-updater is disabled by default. Enable it for one job per build by modifying your environment matrix:
+To grant commit access to the Travis build, define `GITHUB_USER` and `GITHUB_TOKEN` private environment variables in the Travis control panel.
+
+Lastly, because of the `CLU_RUN` environment variable, composer-lock-updater is disabled by default. Enable it for one job per build by modifying your environment matrix:
 
     matrix:
       include:
@@ -82,14 +82,5 @@ Because of the `CLU_RUN` environment variable, composer-lock-updater is disabled
           env: WP_VERSION=latest PHP_APCU=enabled
         - php: 5.6
           env: WP_VERSION=latest PHP_APCU=enabled
-
-To grant commit access to the Travis build, generate a `CLU_SSH_PRIVATE_KEY_BASE64` environment variable and save it as a private variable:
-
-    ssh-keygen -t rsa -b 4096 -C "travis@travis-ci.org" -f ~/.ssh/id_rsa_travis -N ''
-    cat ~/.ssh/id_rsa_travis | base64 --wrap=0
-
-Then, add the public key as a deploy key with write access:
-
-    cat ~/.ssh/id_rsa_travis.pub
 
 Because composer-lock-updater is running on the `after_script` step, make sure to verify it's working correctly, because it won't fail your build if misconfigured.
