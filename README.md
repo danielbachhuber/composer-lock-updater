@@ -11,23 +11,9 @@ When you run `clu`, it:
 
 Et voila! Now your dependencies are no longer six months out of date.
 
-[Using](#using) | [Automating](#automating)
+[Use with Travis CI](#use-with-travis) | [Run locally](#run-locally)
 
-## Using
-
-Before you use composer-lock-updater, ensure the `composer`, `git`, and `hub` executables are present on the filesystem. The current user will need to be authenticated with GitHub (both for push and creating pull requests).
-
-Install composer-lock-updater with:
-
-    composer global require danielbachhuber/composer-lock-updater
-
-Then, update your `composer.lock` file with:
-
-    clu <git-url>
-
-The script provides sufficiently verbose output for debugging purposes.
-
-## Automating
+## Use with Travis CI
 
 This wouldn't be very useful if it didn't run automatically for you.
 
@@ -77,3 +63,17 @@ Lastly, because of the `CLU_RUN` environment variable, composer-lock-updater is 
           env: WP_VERSION=latest PHP_APCU=enabled
 
 Because composer-lock-updater is running on the `after_script` step, make sure to verify it's working correctly, because it won't fail your build if misconfigured.
+
+## Run locally
+
+Before you use composer-lock-updater locally, ensure the `composer`, `git`, and `hub` executables are present on the filesystem. The current user will need to be authenticated with GitHub (both for push and creating pull requests).
+
+Install composer-lock-updater with:
+
+    composer global require danielbachhuber/composer-lock-updater
+
+Then, update your `composer.lock` file with:
+
+    clu <git-url>
+
+The script provides sufficiently verbose output for debugging purposes.
