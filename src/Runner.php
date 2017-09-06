@@ -20,22 +20,22 @@ class Runner {
 		$this->repo_url = $repo_url;
 	}
 
-	public function start() {
-		$this->check_executables();
+	public function start( $target_dir ) {
 		// Clone the repository to a working directory.
 		$shorthash = substr( md5( mt_rand() . time() ), 0, 7 );
-		$target_dir = sys_get_temp_dir() . '/composer-update-' . $shorthash;
-		$cmd = 'hub clone ' . escapeshellarg( $this->repo_url ) . ' ' . escapeshellarg( $target_dir );
-		Logger::info( $cmd );
-		passthru( $cmd, $return_code );
-		if ( 0 !== $return_code ) {
-			Logger::error( 'Git failed to clone repository.' );
-		}
-		Logger::info( 'Git clone successful.' );
 
 		// Run all future commands from the context of the target directory.
 		chdir( $target_dir );
 		Logger::info( 'Changed into directory: ' . getcwd() );
+
+		// Determine whether there is an existing open PR with Composer updates
+		$existing_PR_branch = $this->checkExisting();
+
+		if ( $existing_PR_branch ) {
+		  Logger::info( "Using existing branch: $existing_PR_branch" );
+		  passthru( 'git fetch' );
+		  passthru( 'git checkout ' . $existing_PR_branch );
+		}
 
 		// Perform an initial install to sanity check the package.
 		$cmd = 'composer install --no-dev --no-interaction';
@@ -88,7 +88,7 @@ class Runner {
 		}
 		if ( empty( $output ) ) {
 			Logger::success( 'No changes detected to composer.lock' );
-			exit;
+			return;
 		}
 		Logger::info( 'Detected changes to composer.lock' );
 
@@ -104,14 +104,17 @@ class Runner {
 		}
 		Logger::info( 'Set git config name and email.' );
 
-		// Checkout a dated branch to make the commit
-		$date = date( 'Y-m-d' );
-		$branch_name = 'clu-' . $date . '-' . $shorthash;
-		$cmd = 'git checkout -b ' . escapeshellarg( $branch_name );
-		Logger::info( $cmd );
-		passthru( $cmd, $return_code );
-		if ( 0 !== $return_code ) {
-			Logger::error( 'Failed to check out branch.' );
+		$date = date( 'Y-m-d-H-i' );
+		$branch_name = $existing_PR_branch;
+		if ( !$existing_PR_branch ) {
+			// Checkout a dated branch to make the commit
+			$branch_name = 'clu-' . $date;
+			$cmd = 'git checkout -b ' . escapeshellarg( $branch_name );
+			Logger::info( $cmd );
+			passthru( $cmd, $return_code );
+			if ( 0 !== $return_code ) {
+				Logger::error( 'Failed to check out branch.' );
+			}
 		}
 
 		$message = <<<EOT
@@ -136,6 +139,12 @@ EOT;
 			Logger::error( 'Failed to push changes to origin.' );
 		}
 
+		if ( $existing_PR_branch ) {
+			// TODO: Add comment to existing PR with $message
+			Logger::success( 'Updated pull request with composer.lock changes.' );
+			return;
+		}
+
 		$cmd = 'hub pull-request -m ' . escapeshellarg( $message );
 		Logger::info( $cmd );
 		passthru( $cmd, $return_code );
@@ -146,18 +155,17 @@ EOT;
 		Logger::success( 'Created pull request with composer.lock changes.' );
 	}
 
-	/**
-	 * Check that Git, Composer, and Hub are available on the filesystem.
-	 */
-	private function check_executables() {
-		$execs = array( 'git', 'composer', 'hub' );
-		foreach( $execs as $exec ) {
-			exec( 'type ' . escapeshellarg( $exec ), $_, $return_code );
-			if ( 0 !== $return_code ) {
-				Logger::error( "Missing {$exec} on the system." );
+	private function checkExisting() {
+		exec('hub issue', $output_lines, $return_code);
+		if ( 0 !== $return_code ) {
+			Logger::error( 'Unable to check for existing pull requests with hub.' );
+		}
+		foreach ($output_lines as $line) {
+			if (preg_match('%Update Composer dependencies \(([0-9-]*)\)%', $line, $matches)) {
+				// We will presume the branch name is 'clu-' followed by the date in the issue title.
+				return 'clu-' . $matches[1];
 			}
 		}
-		Logger::info( 'Found required executables on system: ' . implode( ', ', $execs ) );
+		return false;
 	}
-
 }
