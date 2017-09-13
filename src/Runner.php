@@ -189,15 +189,13 @@ EOT;
 		$this->curlGitHub($uri, $data, $auth);
 	}
 
-	public function curlGitHub( $uri, $postData = [], $auth = '' )
-	{
+	public function curlGitHub( $uri, $postData = [], $auth = '' ) {
 		Logger::info( 'Call GitHub API: ' . $uri );
 		$ch = $this->createGitHubPostChannel( $uri, $postData, $auth );
 		return $this->execCurlRequest( $ch, 'GitHub' );
 	}
 
-	protected function createGitHubPostChannel( $uri, $postData = [], $auth = '' )
-	{
+	protected function createGitHubPostChannel( $uri, $postData = [], $auth = '' ) {
 		$url = "https://api.github.com/$uri";
 		$ch = $this->createAuthorizationHeaderCurlChannel( $url, $auth );
 		$this->setCurlChannelPostData( $ch, $postData );
@@ -205,8 +203,7 @@ EOT;
 		return $ch;
 	}
 
-	protected function createAuthorizationHeaderCurlChannel( $url, $auth = '' )
-	{
+	protected function createAuthorizationHeaderCurlChannel( $url, $auth = '' ) {
 		$headers = [
 			'Content-Type: application/json',
 			'User-Agent: pantheon/terminus-build-tools-plugin'
@@ -225,8 +222,7 @@ EOT;
 		return $ch;
 	}
 
-	protected function setCurlChannelPostData( $ch, $postData, $force = false )
-	{
+	protected function setCurlChannelPostData( $ch, $postData, $force = false ) {
 		if ( !empty($postData) || $force ) {
 			$payload = json_encode( $postData );
 			curl_setopt( $ch, CURLOPT_POST, 1 );
@@ -234,8 +230,7 @@ EOT;
 		}
 	}
 
-	public function execCurlRequest( $ch, $service = 'API request' )
-	{
+	public function execCurlRequest( $ch, $service = 'API request' ) {
 		$result = curl_exec($ch);
 		if( curl_errno($ch) )
 		{
