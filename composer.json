@@ -19,12 +19,14 @@
         "psr-4": {"CLU\\": "src/"}
     },
     "scripts": {
+        "lint": "find src -name '*.php' -exec php -l {} \\;",
         "cs": "phpcs -n src",
         "cbf": "phpcbf -n src",
         "unit": "echo tbd: phpunit --colors=always",
         "test": [
             "@unit",
-            "@cs"
+            "@cs",
+            "@lint"
         ]
     }
 }
