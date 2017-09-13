@@ -32,9 +32,9 @@ class Runner {
 		$existing_PR_branch = $this->checkExisting();
 
 		if ( $existing_PR_branch ) {
-		  Logger::info( "Using existing branch: $existing_PR_branch" );
-		  passthru( 'git fetch' );
-		  passthru( 'git checkout ' . $existing_PR_branch );
+			Logger::info( "Using existing branch: $existing_PR_branch" );
+			passthru( 'git fetch' );
+			passthru( 'git checkout ' . $existing_PR_branch );
 		}
 
 		// Perform an initial install to sanity check the package.
