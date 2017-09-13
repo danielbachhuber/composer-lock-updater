@@ -140,7 +140,9 @@ EOT;
 		}
 
 		if ( $existing_PR_branch ) {
-			// TODO: Add comment to existing PR with $message
+			// Add comment to existing PR with $message
+			$commitSha = exec( 'git rev-parse HEAD', $output_lines, $return_code);
+			$this->addCommitComment( $message, $this->project(), $commitSha );
 			Logger::success( 'Updated pull request with composer.lock changes.' );
 			return;
 		}
@@ -168,4 +170,109 @@ EOT;
 		}
 		return false;
 	}
+
+	private function addCommitComment( $message, $project, $commitSha ) {
+		// We expect that GITHUB token should always be defined; however, we
+		// will silently omit the comment if it is not, since the new commit
+		// is already visible on the PR, and the separate comment is therefore
+		// not necessary for correct operation.
+		$auth = getenv( 'GITHUB_TOKEN' );
+		if ( !$auth ) {
+			return;
+		}
+
+		$uri = "repos/$project/commits/$commitSha/comments";
+		$data = [
+			'body' => $message,
+		];
+
+		$this->curlGitHub($uri, $data, $auth);
+	}
+
+	public function curlGitHub( $uri, $postData = [], $auth = '' )
+	{
+		Logger::info( 'Call GitHub API: ' . $uri );
+		$ch = $this->createGitHubPostChannel( $uri, $postData, $auth );
+		return $this->execCurlRequest( $ch, 'GitHub' );
+	}
+
+	protected function createGitHubPostChannel( $uri, $postData = [], $auth = '' )
+	{
+		$url = "https://api.github.com/$uri";
+		$ch = $this->createAuthorizationHeaderCurlChannel( $url, $auth );
+		$this->setCurlChannelPostData( $ch, $postData );
+
+		return $ch;
+	}
+
+	protected function createAuthorizationHeaderCurlChannel( $url, $auth = '' )
+	{
+		$headers = [
+			'Content-Type: application/json',
+			'User-Agent: pantheon/terminus-build-tools-plugin'
+		];
+
+		if (!empty($auth)) {
+			$headers[] = "Authorization: token $auth";
+		}
+
+		$ch = curl_init();
+		curl_setopt( $ch, CURLOPT_URL, $url );
+		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+		curl_setopt( $ch, CURLOPT_TIMEOUT, 5 );
+		curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
+
+		return $ch;
+	}
+
+	protected function setCurlChannelPostData( $ch, $postData, $force = false )
+	{
+		if ( !empty($postData) || $force ) {
+			$payload = json_encode( $postData );
+			curl_setopt( $ch, CURLOPT_POST, 1 );
+			curl_setopt( $ch, CURLOPT_POSTFIELDS, $payload );
+		}
+	}
+
+	public function execCurlRequest( $ch, $service = 'API request' )
+	{
+		$result = curl_exec($ch);
+		if( curl_errno($ch) )
+		{
+			Logger::error( curl_error($ch) );
+		}
+		$data = json_decode( $result, true );
+		$httpCode = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+		curl_close( $ch );
+
+		$errors = [];
+		if ( isset($data['errors']) ) {
+			foreach ( $data['errors'] as $error ) {
+				$errors[] = $error['message'];
+			}
+		}
+		if ( $httpCode && ($httpCode >= 300) ) {
+			$errors[] = "Http status code: $httpCode";
+		}
+
+		$message = isset( $data['message'] ) ? "{$data['message']}." : '';
+
+		if ( !empty($message) || !empty($errors) ) {
+			  $errors = implode( "\n", $errors );
+			Logger::error( "$service error: $message $errors" );
+		}
+
+		return $data;
+	}
+
+	private function repo() {
+		return $this->repo_url;
+	}
+
+	private function project() {
+		if ( preg_match( '#([^/:]*/.*)$#', $this->repo_url, $matches ) ) {
+			return rtrim( $matches[1], '.git' );
+		}
+	}
+
 }
