@@ -2,8 +2,8 @@
 <?php
 
 if ( file_exists( $path = __DIR__ . '/../vendor/autoload.php' )
-    || file_exists( $path = __DIR__ . '/../../autoload.php' )
-    || file_exists( $path = __DIR__ . '/../../../autoload.php' )
+	|| file_exists( $path = __DIR__ . '/../../autoload.php' )
+	|| file_exists( $path = __DIR__ . '/../../../autoload.php' )
 ) {
 	include_once($path);
 } else {
@@ -18,18 +18,18 @@ if ( getenv( 'CLU_GIT_URL' ) ) {
 }
 $repo_local_working_copy = false;
 if ( ! $repo_url ) {
-  $repo_local_working_copy = getcwd();
-  $first_line_of_output = exec('git config --get remote.origin.url', $outputLines, $status);
-  if ( ! $status ) {
-    $repo_url = $first_line_of_output;
-  }
+	$repo_local_working_copy = getcwd();
+	$first_line_of_output = exec('git config --get remote.origin.url', $outputLines, $status);
+	if ( ! $status ) {
+		$repo_url = $first_line_of_output;
+	}
 }
 if ( ! $repo_url ) {
 	CLU\Logger::error( 'Git URL must be provided as first argument or with CLU_GIT_URL' );
 }
 if ( ! $repo_local_working_copy ) {
-  $cloner = new CLU\Cloner();
-  $repo_local_working_copy = $cloner->cloneRepo( $repo_url );
+	$cloner = new CLU\Cloner();
+	$repo_local_working_copy = $cloner->cloneRepo( $repo_url );
 }
 
 $runner = new CLU\Runner( $repo_url );
