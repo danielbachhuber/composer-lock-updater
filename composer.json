@@ -9,10 +9,24 @@
         }
     ],
     "require": {},
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^2.7"
+    },
     "bin": [
         "bin/clu"
     ],
     "autoload": {
         "psr-4": {"CLU\\": "src/"}
+    },
+    "scripts": {
+        "lint": "find src -name '*.php' -exec php -l {} \\;",
+        "cs": "phpcs -n src",
+        "cbf": "phpcbf -n src",
+        "unit": "echo tbd: phpunit --colors=always",
+        "test": [
+            "@unit",
+            "@cs",
+            "@lint"
+        ]
     }
 }

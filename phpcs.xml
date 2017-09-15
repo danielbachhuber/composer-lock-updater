@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<ruleset name="PHP_CodeSniffer">
+  <description>Enforce TABS instead of SPACES for indentation.</description>
+
+  <file>bin/clu</file>
+  <file>src</file>
+
+  <!-- At the moment, we do not define a default coding standard; we only enforce TABS instead of SPACES -->
+
+  <!-- TABS instead of SPACES. See: https://github.com/squizlabs/PHP_CodeSniffer/issues/467 -->
+  <arg name="tab-width" value="4" />
+  <rule ref="Generic.WhiteSpace.DisallowSpaceIndent"/>
+
+  <rule ref="Generic.WhiteSpace.ScopeIndent">
+    <properties>
+      <property name="tabIndent" value="true"/>
+    </properties>
+  </rule>
+
+</ruleset>
