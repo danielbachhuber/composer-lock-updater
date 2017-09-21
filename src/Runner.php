@@ -186,7 +186,7 @@ EOT;
 	/**
 	 * Check the Sensiolabs security component if availble.
 	 *
-	 * $security_status will be 0 if the code is beleived to be good, and
+	 * $security_status will be 0 if the code is believed to be good, and
 	 * will be non-zero if vulnerabilities were detected (status == 1), or
 	 * if the vulnerability status is unknown (status == 127).
 	 */
