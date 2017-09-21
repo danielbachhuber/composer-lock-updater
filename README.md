@@ -3,6 +3,8 @@ composer-lock-updater
 
 Run composer-lock-updater in your CI system for bot-powered `composer.lock` pull requests.
 
+[![Build Status](https://travis-ci.org/danielbachhuber/composer-lock-updater.svg?branch=master)](https://travis-ci.org/danielbachhuber/composer-lock-updater)
+
 When you run `clu`, it:
 
 1. Clones a given GitHub repository to a working `/tmp/` directory.
