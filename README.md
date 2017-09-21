@@ -40,6 +40,12 @@ To configure composer-lock-updater to run on Travis master branch builds, add th
         tar -zxvf hub.tgz
         export PATH=$PATH:$PWD/hub-linux-amd64-2.2.9/bin/
         ###
+        # Optional: install Sensio Labs security checker to include security advisories in PR comments
+        ###
+        mkdir -p $HOME/bin
+        wget -O $HOME/bin/security-checker.phar http://get.sensiolabs.org/security-checker.phar
+        chmod +x $HOME/bin/security-checker.phar 
+        ###
         # Run composer-lock-updater
         ###
         clu $CLU_REPO_URL

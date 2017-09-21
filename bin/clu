@@ -12,7 +12,13 @@ if ( file_exists( $path = __DIR__ . '/../vendor/autoload.php' )
 
 \CLU\Checker::check_executables();
 
-$repo_url = ! empty( $argv[1] ) ? $argv[1] : '';
+// Simple argv parsing
+$optind = null;
+$opts = getopt('', ['security-only'], $optind);
+$pos_args = array_slice($argv, $optind);
+
+$repo_url = isset($pos_args[0]) ? $pos_args[0] : '';
+
 if ( getenv( 'CLU_GIT_URL' ) ) {
 	$repo_url = getenv( 'CLU_GIT_URL' );
 }
@@ -33,4 +39,4 @@ if ( ! $repo_local_working_copy ) {
 }
 
 $runner = new CLU\Runner( $repo_url );
-$runner->start( $repo_local_working_copy );
+$runner->start( $repo_local_working_copy, $opts );
