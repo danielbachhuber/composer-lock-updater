@@ -10,6 +10,8 @@
     ],
     "require": {},
     "require-dev": {
+        "satooshi/php-coveralls": "~1",
+        "phpunit/php-code-coverage": "~2|~4",
         "squizlabs/php_codesniffer": "^2.7"
     },
     "bin": [
@@ -28,5 +30,13 @@
             "@cs",
             "@lint"
         ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "platform": {
+            "php": "5.6"
+        }
     }
 }

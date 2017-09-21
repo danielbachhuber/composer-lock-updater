@@ -20,13 +20,25 @@ class Runner {
 		$this->repo_url = $repo_url;
 	}
 
-	public function start( $target_dir ) {
+	public function start( $target_dir, $opts ) {
 		// Clone the repository to a working directory.
 		$shorthash = substr( md5( mt_rand() . time() ), 0, 7 );
 
 		// Run all future commands from the context of the target directory.
 		chdir( $target_dir );
 		Logger::info( 'Changed into directory: ' . getcwd() );
+
+		// Check if there are any security advisories for any of the
+		// versions of any of our dependencies in use right now.
+		$security_message = $this->checkSensiolabsSecurity( 'composer.lock', $is_vulnerable );
+		Logger::info( $security_message );
+
+		// Exit early if user requested security updates only, and no dependencies
+		// are vulnerable.
+		if ( isset($opts['security-only']) && !$is_vulnerable ) {
+			Logger::info('Exiting since --security-only was specified, and there are no security updates available.');
+			exit(0);
+		}
 
 		// Determine whether there is an existing open PR with Composer updates
 		$existing_PR_branch = $this->checkExisting();
@@ -121,7 +133,7 @@ class Runner {
 Update Composer dependencies ({$date})
 
 ```
-{$update_message}
+{$update_message}{$security_message}
 ```
 EOT;
 
@@ -169,6 +181,25 @@ EOT;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Check the Sensiolabs security component if availble.
+	 *
+	 * $security_status will be 0 if the code is believed to be good, and
+	 * will be non-zero if vulnerabilities were detected (status == 1), or
+	 * if the vulnerability status is unknown (status == 127).
+	 */
+	protected function checkSensiolabsSecurity($composerLockPath, &$security_status) {
+		// If the security-checker app is not installed, return an empty message
+		exec( 'which security-checker.phar', $outputOfWhich, $return_code );
+		if ( $return_code ) {
+			$security_status = 127;
+			return '';
+		}
+
+		exec( 'security-checker.phar security:check ' . $composerLockPath, $output, $is_vulnerable );
+		return "\n\n" . implode("\n", $output);
 	}
 
 	private function addCommitComment( $message, $project, $commitSha ) {

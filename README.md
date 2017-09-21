@@ -3,6 +3,8 @@ composer-lock-updater
 
 Run composer-lock-updater in your CI system for bot-powered `composer.lock` pull requests.
 
+[![Build Status](https://travis-ci.org/danielbachhuber/composer-lock-updater.svg?branch=master)](https://travis-ci.org/danielbachhuber/composer-lock-updater)
+
 When you run `clu`, it:
 
 1. Clones a given GitHub repository to a working `/tmp/` directory.
@@ -39,6 +41,12 @@ To configure composer-lock-updater to run on Travis master branch builds, add th
         wget -O hub.tgz https://github.com/github/hub/releases/download/v2.2.9/hub-linux-amd64-2.2.9.tgz
         tar -zxvf hub.tgz
         export PATH=$PATH:$PWD/hub-linux-amd64-2.2.9/bin/
+        ###
+        # Optional: install Sensio Labs security checker to include security advisories in PR comments
+        ###
+        mkdir -p $HOME/bin
+        wget -O $HOME/bin/security-checker.phar http://get.sensiolabs.org/security-checker.phar
+        chmod +x $HOME/bin/security-checker.phar 
         ###
         # Run composer-lock-updater
         ###
