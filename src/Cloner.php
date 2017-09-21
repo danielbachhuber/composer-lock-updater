@@ -4,12 +4,12 @@ namespace CLU;
 
 class Cloner {
 
-  /**
-   * Clone the repository.
-   *
-   * @param string $repo_url
-   * @return string $repo_local_working_copy
-   */
+	/**
+	 * Clone the repository.
+	 *
+	 * @param string $repo_url
+	 * @return string $repo_local_working_copy
+	 */
 	public function cloneRepo( $repo_url ) {
 		// Clone the repository to a working directory.
 		$shorthash = substr( md5( mt_rand() . time() ), 0, 7 );
