@@ -30,5 +30,13 @@
             "@cs",
             "@lint"
         ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "platform": {
+            "php": "5.6"
+        }
     }
 }

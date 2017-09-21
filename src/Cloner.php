@@ -4,7 +4,7 @@ namespace CLU;
 
 class Cloner {
 
-	/**
+  /**
    * Clone the repository.
    *
    * @param string $repo_url
@@ -24,5 +24,4 @@ class Cloner {
 
 		return $repo_local_working_copy;
 	}
-
 }
