@@ -50,7 +50,8 @@ class Runner {
 		}
 
 		// Perform an initial install to sanity check the package.
-		$cmd = 'composer install --no-dev --no-interaction --ignore-platform-reqs';
+		$args = getenv( 'CLU_COMPOSER_INSTALL_ARGS' ) ? : '--no-dev --no-interaction';
+		$cmd  = 'composer install ' . $args;
 		Logger::info( $cmd );
 		passthru( $cmd, $return_code );
 		if ( 0 !== $return_code ) {
@@ -65,7 +66,8 @@ class Runner {
 		}
 
 		// Run composer update, but capture output for the commit message if needed.
-		$cmd = 'composer update --no-progress --no-dev --no-interaction --ignore-platform-reqs';
+		$args = getenv( 'CLU_COMPOSER_UPDATE_ARGS' ) ? : '--no-progress --no-dev --no-interaction';
+		$cmd  = 'composer update';
 		Logger::info( $cmd );
 		$cmd = 'cd ' . escapeshellarg( $target_dir ) . '; ' . $cmd;
 		$proc = proc_open( $cmd, array(
