@@ -41,7 +41,7 @@ class Runner {
 		}
 
 		// Determine whether there is an existing open PR with Composer updates
-		$existing_PR_branch = $this->checkExisting();
+		$existing_PR_branch = $this->checkExisting(isset($opts['gitlab']));
 
 		if ( $existing_PR_branch ) {
 			Logger::info( "Using existing branch: $existing_PR_branch" );
@@ -156,25 +156,38 @@ EOT;
 		if ( $existing_PR_branch ) {
 			// Add comment to existing PR with $message
 			$commitSha = exec( 'git rev-parse HEAD', $output_lines, $return_code);
-			$this->addCommitComment( $message, $this->project(), $commitSha );
-			Logger::success( 'Updated pull request with composer.lock changes.' );
-			return;
+			if (!isset($opts['gitlab'])) {
+        $this->addCommitComment( $message, $this->project(), $commitSha );
+        Logger::success( 'Updated pull request with composer.lock changes.' );
+      }
+      return;
 		}
 
-		$cmd = 'hub pull-request -m ' . escapeshellarg( $message );
+		if (isset($opts['gitlab'])) {
+		  $cmd = 'lab mr create -m ' . escapeshellarg( $message );
+    }
+		else {
+      $cmd = 'hub pull-request -m ' . escapeshellarg( $message );
+    }
 		Logger::info( $cmd );
 		passthru( $cmd, $return_code );
 		if ( 0 !== $return_code ) {
-			Logger::error( 'Failed to create a pull request with hub.' );
+			Logger::error( 'Failed to create a pull request with CLI tool.' );
 		}
 
 		Logger::success( 'Created pull request with composer.lock changes.' );
 	}
 
-	private function checkExisting() {
-		exec('hub issue', $output_lines, $return_code);
+	private function checkExisting($should_use_gitlab) {
+	  if ($should_use_gitlab) {
+	    $command = 'lab issue list';
+    }
+	  else {
+	    $command = 'hub issue';
+    }
+		exec($command, $output_lines, $return_code);
 		if ( 0 !== $return_code ) {
-			Logger::error( 'Unable to check for existing pull requests with hub.' );
+			Logger::error( 'Unable to check for existing pull requests with CLI program.' );
 		}
 		foreach ($output_lines as $line) {
 			if (preg_match('%Update Composer dependencies \(([0-9-]*)\)%', $line, $matches)) {

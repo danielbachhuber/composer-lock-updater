@@ -10,12 +10,12 @@ if ( file_exists( $path = __DIR__ . '/../vendor/autoload.php' )
 	throw new \Exception('Could not locate autoload.php');
 }
 
-\CLU\Checker::check_executables();
-
 // Simple argv parsing
 $optind = null;
-$opts = getopt('', ['security-only'], $optind);
+$opts = getopt('', ['security-only', 'gitlab'], $optind);
 $pos_args = array_slice($argv, $optind);
+
+\CLU\Checker::check_executables(isset($opts['gitlab']));
 
 $repo_url = isset($pos_args[0]) ? $pos_args[0] : '';
 
