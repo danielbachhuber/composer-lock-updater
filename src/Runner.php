@@ -168,6 +168,11 @@ EOT;
 				$this->addCommitComment( $message, $this->project(), $commitSha );
 				Logger::success( 'Updated pull request with composer.lock changes.' );
 			}
+			elseif ($this->isGitLab()) {
+			    $mrNum = $this->findExistingMRNumber();
+			    passthru('lab mr note ' . escapeshellarg($mrNum) . ' -m ' . escapeshellarg( $message ));
+			    Logger::success( 'Updated merge request with composer.lock changes.' );
+            }
 			return;
 		}
 
@@ -193,7 +198,7 @@ EOT;
 		else {
 			$command = 'hub issue';
 		}
-			exec($command, $output_lines, $return_code);
+        exec($command, $output_lines, $return_code);
 		if ( 0 !== $return_code ) {
 			Logger::error( 'Unable to check for existing pull requests with CLI program.' );
 		}
@@ -203,8 +208,22 @@ EOT;
 				return 'clu-' . $matches[1];
 			}
 		}
-			return false;
+        return false;
 	}
+
+	private function findExistingMRNumber() {
+	    $command = 'lab mr list';
+	    exec($command, $output_lines, $return_code);
+	    if ( 0 !== $return_code ) {
+	        Logger::error( 'Unable to determine existing MR number with CLI program.' );
+        }
+	    foreach ($output_lines as $line) {
+            if (preg_match('%#([0-9]) Update Composer dependencies*%', $line, $matches)) {
+                return $matches[1];
+            }
+        }
+	    return false;
+    }
 
 	/**
 	 * Check the Sensiolabs security component if availble.
