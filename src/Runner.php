@@ -12,12 +12,20 @@ class Runner {
 	private $repo_url;
 
 	/**
+	 * Git provider.
+	 *
+	 * @var string
+	 */
+	private $git_provider;
+
+	/**
 	 * Instantiate the runner.
 	 *
 	 * @param string $repo_url
 	 */
-	public function __construct( $repo_url ) {
+	public function __construct( $repo_url, $git_provider ) {
 		$this->repo_url = $repo_url;
+		$this->git_provider = $git_provider;
 	}
 
 	public function start( $target_dir, $opts ) {
@@ -41,7 +49,7 @@ class Runner {
 		}
 
 		// Determine whether there is an existing open PR with Composer updates
-		$existing_PR_branch = $this->checkExisting(isset($opts['gitlab']));
+		$existing_PR_branch = $this->checkExisting();
 
 		if ( $existing_PR_branch ) {
 			Logger::info( "Using existing branch: $existing_PR_branch" );
@@ -156,19 +164,19 @@ EOT;
 		if ( $existing_PR_branch ) {
 			// Add comment to existing PR with $message
 			$commitSha = exec( 'git rev-parse HEAD', $output_lines, $return_code);
-			if (!isset($opts['gitlab'])) {
-        $this->addCommitComment( $message, $this->project(), $commitSha );
-        Logger::success( 'Updated pull request with composer.lock changes.' );
-      }
-      return;
+			if ($this->isGitHub()) {
+				$this->addCommitComment( $message, $this->project(), $commitSha );
+				Logger::success( 'Updated pull request with composer.lock changes.' );
+			}
+			return;
 		}
 
-		if (isset($opts['gitlab'])) {
-		  $cmd = 'lab mr create -m ' . escapeshellarg( $message );
-    }
+		if ($this->isGitLab()) {
+			$cmd = 'lab mr create -m ' . escapeshellarg( $message );
+		}
 		else {
-      $cmd = 'hub pull-request -m ' . escapeshellarg( $message );
-    }
+			$cmd = 'hub pull-request -m ' . escapeshellarg( $message );
+		}
 		Logger::info( $cmd );
 		passthru( $cmd, $return_code );
 		if ( 0 !== $return_code ) {
@@ -178,14 +186,14 @@ EOT;
 		Logger::success( 'Created pull request with composer.lock changes.' );
 	}
 
-	private function checkExisting($should_use_gitlab) {
-	  if ($should_use_gitlab) {
-	    $command = 'lab issue list';
-    }
-	  else {
-	    $command = 'hub issue';
-    }
-		exec($command, $output_lines, $return_code);
+	private function checkExisting() {
+		if ($this->isGitLab()) {
+			$command = 'lab mr list';
+		}
+		else {
+			$command = 'hub issue';
+		}
+			exec($command, $output_lines, $return_code);
 		if ( 0 !== $return_code ) {
 			Logger::error( 'Unable to check for existing pull requests with CLI program.' );
 		}
@@ -195,7 +203,7 @@ EOT;
 				return 'clu-' . $matches[1];
 			}
 		}
-		return false;
+			return false;
 	}
 
 	/**
@@ -314,6 +322,14 @@ EOT;
 		if ( preg_match( '#([^/:]*/.*)$#', $this->repo_url, $matches ) ) {
 			return rtrim( $matches[1], '.git' );
 		}
+	}
+
+	private function isGitLab() {
+		return $this->git_provider == 'gitlab';
+	}
+
+	private function isGitHub() {
+		return $this->git_provider == 'github';
 	}
 
 }

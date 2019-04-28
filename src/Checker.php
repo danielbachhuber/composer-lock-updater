@@ -10,11 +10,11 @@ class Checker {
 	public static function check_executables($should_check_gitlab) {
 		$execs = array( 'git', 'composer' );
 		if ($should_check_gitlab) {
-		  $execs[] = 'lab';
-    }
+			$execs[] = 'lab';
+		}
 		else {
-		  $execs[] = 'hub';
-    }
+			$execs[] = 'hub';
+		}
 		foreach( $execs as $exec ) {
 			exec( 'type ' . escapeshellarg( $exec ), $_, $return_code );
 			if ( 0 !== $return_code ) {
