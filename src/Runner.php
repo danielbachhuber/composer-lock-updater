@@ -172,7 +172,7 @@ EOT;
 	}
 
 	private function checkExisting() {
-		exec('hub issue', $output_lines, $return_code);
+		exec('hub pr list hub pr list --format="%t%n" --state=open', $output_lines, $return_code);
 		if ( 0 !== $return_code ) {
 			Logger::error( 'Unable to check for existing pull requests with hub.' );
 		}
