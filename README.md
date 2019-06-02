@@ -21,12 +21,13 @@ This wouldn't be very useful if it didn't run automatically for you.
 
 To configure composer-lock-updater to run on Travis master branch builds, add the following to your `.travis.yml` file:
 
+```bash
     after_script:
       - |
         ###
         # Only run on one job of a master branch build
         ###
-        if [ -z "$CLU_RUN" ] || [ "master" != "$TRAVIS_BRANCH"] ; then
+        if [ -z "$CLU_RUN" ] || [ "$TRAVIS_BRANCH" != master ] ; then
           echo "composer.lock update disabled for this build"
           return
         fi
@@ -51,6 +52,7 @@ To configure composer-lock-updater to run on Travis master branch builds, add th
         # Run composer-lock-updater
         ###
         clu $CLU_REPO_URL
+```
 
 To grant commit and pull request access to the Travis build, define these private environment variables in the Travis control panel:
 
