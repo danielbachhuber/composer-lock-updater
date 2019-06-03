@@ -196,7 +196,7 @@ EOT;
 			$command = 'lab mr list';
 		}
 		else {
-			$command = 'hub issue';
+			$command = 'hub pr list --format="%t%n" --state=open';
 		}
 		exec($command, $output_lines, $return_code);
 		if ( 0 !== $return_code ) {
