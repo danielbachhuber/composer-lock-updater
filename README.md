@@ -46,7 +46,7 @@ To configure composer-lock-updater to run on Travis master branch builds, add th
         ###
         mkdir -p $HOME/bin
         wget -O $HOME/bin/security-checker.phar http://get.sensiolabs.org/security-checker.phar
-        chmod +x $HOME/bin/security-checker.phar 
+        chmod +x $HOME/bin/security-checker.phar
         ###
         # Run composer-lock-updater
         ###
@@ -85,3 +85,7 @@ Then, update your `composer.lock` file with:
     clu <git-url>
 
 The script provides sufficiently verbose output for debugging purposes.
+
+## GitLab support
+
+CLU supports GitLab in addition to GitHub. To use the project with a GitLab based repo, pass a `--gitlab` flag when running CLU.
