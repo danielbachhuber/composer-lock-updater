@@ -155,7 +155,7 @@ EOT;
 			Logger::error( 'Failed to push changes to origin.' );
 		}
 
-		if ( $existing_PR_branch ) {
+		if ( $existing_PR_branch && $this->isGitLab() ) {
 			// Add comment to existing PR with $message
 			$commitSha = exec( 'git rev-parse HEAD', $output_lines, $return_code);
 			$this->addCommitComment( $message, $this->project(), $commitSha );
