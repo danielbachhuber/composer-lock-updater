@@ -14,8 +14,8 @@ class Cloner {
 		// Clone the repository to a working directory.
 		$shorthash = substr( md5( mt_rand() . time() ), 0, 7 );
 		$repo_local_working_copy = sys_get_temp_dir() . '/composer-update-' . $shorthash;
-		$cmd = 'hub clone ' . escapeshellarg( $repo_url ) . ' ' . escapeshellarg( $repo_local_working_copy );
-		$cmd_to_log = 'hub clone [REDACTED] $repo_local_working_copy';
+		$cmd = 'git clone ' . escapeshellarg( $repo_url ) . ' ' . escapeshellarg( $repo_local_working_copy );
+		$cmd_to_log = 'git clone [REDACTED] $repo_local_working_copy';
 		Logger::info( $cmd_to_log );
 		passthru( $cmd, $return_code );
 		if ( 0 !== $return_code ) {
