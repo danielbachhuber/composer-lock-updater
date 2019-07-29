@@ -47,5 +47,5 @@ if ( ! $repo_local_working_copy ) {
 	$repo_local_working_copy = $cloner->cloneRepo( $repo_url );
 }
 
-$runner = new CLU\Runner( $repo_url );
+$runner = new CLU\Runner( $repo_url, $provider );
 $runner->start( $repo_local_working_copy, $opts );

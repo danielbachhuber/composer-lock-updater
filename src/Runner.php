@@ -15,9 +15,11 @@ class Runner {
 	 * Instantiate the runner.
 	 *
 	 * @param string $repo_url
+	 * @param string $provider
 	 */
-	public function __construct( $repo_url ) {
+	public function __construct( $repo_url, $provider ) {
 		$this->repo_url = $repo_url;
+		$this->provider = $provider;
 	}
 
 	public function start( $target_dir, $opts ) {
@@ -157,24 +159,34 @@ EOT;
 			// Add comment to existing PR with $message
 			$commitSha = exec( 'git rev-parse HEAD', $output_lines, $return_code);
 			$this->addCommitComment( $message, $this->project(), $commitSha );
-			Logger::success( 'Updated pull request with composer.lock changes.' );
+			Logger::success( sprintf( 'Updated %s with composer.lock changes.', $this->getRequestType() ) );
 			return;
 		}
-
-		$cmd = 'hub pull-request -m ' . escapeshellarg( $message );
+		if ( $this->isGitHub() ) {
+			$cmd = 'hub pull-request -m ' . escapeshellarg( $message );
+		} elseif ( $this->isGitLab() ) {
+			$cmd = 'lab mr create -m ' . escapeshellarg( $message );
+		}
 		Logger::info( $cmd );
 		passthru( $cmd, $return_code );
 		if ( 0 !== $return_code ) {
-			Logger::error( 'Failed to create a pull request with hub.' );
+			Logger::error( sprintf( 'Failed to create a %s.', $this->getRequestType() ) );
 		}
 
-		Logger::success( 'Created pull request with composer.lock changes.' );
+		Logger::success( sprintf( 'Created %s with composer.lock changes.', $this->getRequestType() ) );
 	}
 
 	private function checkExisting() {
-		exec('hub pr list --format="%t%n" --state=open', $output_lines, $return_code);
+		if ( $this->isGitHub() ) {
+			$cmd = 'hub pr list --format="%t%n" --state=open';
+		} elseif ( $this->isGitLab() ) {
+			$cmd = 'lab mr list';
+		} else {
+			return false;
+		}
+		exec($cmd, $output_lines, $return_code);
 		if ( 0 !== $return_code ) {
-			Logger::error( 'Unable to check for existing pull requests with hub.' );
+			Logger::error( sprintf( 'Unable to check for existing %ss', $this->getRequestType() ) );
 		}
 		foreach ($output_lines as $line) {
 			if (preg_match('%Update Composer dependencies \(([0-9-]*)\)%', $line, $matches)) {
@@ -202,6 +214,33 @@ EOT;
 
 		exec( 'security-checker.phar security:check ' . $composerLockPath, $output, $is_vulnerable );
 		return "\n\n" . implode("\n", $output);
+	}
+
+	/**
+	 * Whether or not the current provider is GitHub.
+	 *
+	 * @return boolean
+	 */
+	private function isGitHub() {
+		return 'github' === $this->provider;
+	}
+
+	/**
+	 * Whether or not the current provider is GitLab.
+	 *
+	 * @return boolean
+	 */
+	private function isGitLab() {
+		return 'gitlab' === $this->provider;
+	}
+
+	/**
+	 * Returns 'pull request' or 'merge request', depending on provider.
+	 *
+	 * @return string
+	 */
+	private function getRequestType() {
+		return $this->isGitLab() ? 'merge request' : 'pull request';
 	}
 
 	private function addCommitComment( $message, $project, $commitSha ) {
