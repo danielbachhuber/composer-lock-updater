@@ -338,7 +338,7 @@ EOT;
 
 	private function project() {
 		if ( preg_match( '#([^/:]*/.*)$#', $this->repo_url, $matches ) ) {
-			return rtrim( $matches[1], '.git' );
+			return preg_replace( '#\.git$#', '', $matches[1] );
 		}
 	}
 
