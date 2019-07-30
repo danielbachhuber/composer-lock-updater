@@ -43,7 +43,7 @@ class Runner {
 		}
 
 		// Determine whether there is an existing open PR with Composer updates
-		$existing_PR_branch = $this->checkExisting();
+		$existing_PR_branch = $this->checkExistingPRBranch();
 
 		if ( $existing_PR_branch ) {
 			Logger::info( "Using existing branch: $existing_PR_branch" );
@@ -176,7 +176,7 @@ EOT;
 		Logger::success( sprintf( 'Created %s with composer.lock changes.', $this->getRequestType() ) );
 	}
 
-	private function checkExisting() {
+	private function checkExistingPRBranch() {
 		if ( $this->isGitHub() ) {
 			$cmd = 'hub pr list --format="%t%n" --state=open';
 		} elseif ( $this->isGitLab() ) {
