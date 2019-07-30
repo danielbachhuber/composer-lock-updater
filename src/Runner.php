@@ -46,19 +46,39 @@ class Runner {
 		$existing_PR_branch = $this->checkExistingPRBranch();
 
 		if ( $existing_PR_branch ) {
-			Logger::info( "Using existing branch: $existing_PR_branch" );
+			exec( 'git rev-parse --abbrev-ref HEAD', $initial_branch, $return_code );
+			if ( 0 !== $return_code ) {
+				Logger::error( 'Failed to fetch initial branch.' );
+			}
+			$initial_branch = $initial_branch[0];
+			Logger::info( "Inspecting existing branch: $existing_PR_branch" );
 			passthru( 'git fetch' );
 			passthru( 'git checkout ' . $existing_PR_branch );
+			// Check to see if there are any outdated dependencies.
+			$this->runComposerInstall();
+			exec( 'composer outdated', $output, $return_code );
+			if ( 0 !== $return_code ) {
+				Logger::error( 'Failed to run composer outdated.' );
+			}
+			if ( empty( $output ) ) {
+				Logger::info('Exiting since no updates were detected on existing PR branch.');
+				exit(0);
+			}
+			// Close the existing PR and delete its branch.
+			$this->closeExistingPRBranch( $existing_PR_branch );
+			// Check out the initial branch locally and delete the local PR branch.
+			passthru( 'git checkout ' . $initial_branch );
+			$cmd = 'git branch -D ' . escapeshellarg( $existing_PR_branch );
+			Logger::info( $cmd );
+			passthru( $cmd, $return_code );
+			if ( 0 !== $return_code ) {
+				Logger::error( 'Failed to delete local branch.' );
+			}
+			// Fall through to create the new branch.
 		}
 
 		// Perform an initial install to sanity check the package.
-		$args = getenv( 'CLU_COMPOSER_INSTALL_ARGS' ) ? : '--no-dev --no-interaction';
-		$cmd  = 'composer install ' . $args;
-		Logger::info( $cmd );
-		passthru( $cmd, $return_code );
-		if ( 0 !== $return_code ) {
-			Logger::error( 'Composer failed to install dependencies.' );
-		}
+		$this->runComposerInstall();
 
 		$cmd = 'composer outdated';
 		Logger::info( $cmd );
@@ -121,16 +141,13 @@ class Runner {
 		Logger::info( 'Set git config name and email.' );
 
 		$date = date( 'Y-m-d-H-i' );
-		$branch_name = $existing_PR_branch;
-		if ( !$existing_PR_branch ) {
-			// Checkout a dated branch to make the commit
-			$branch_name = 'clu-' . $date;
-			$cmd = 'git checkout -b ' . escapeshellarg( $branch_name );
-			Logger::info( $cmd );
-			passthru( $cmd, $return_code );
-			if ( 0 !== $return_code ) {
-				Logger::error( 'Failed to check out branch.' );
-			}
+		// Checkout a dated branch to make the commit
+		$branch_name = 'clu-' . $date;
+		$cmd = 'git checkout -b ' . escapeshellarg( $branch_name );
+		Logger::info( $cmd );
+		passthru( $cmd, $return_code );
+		if ( 0 !== $return_code ) {
+			Logger::error( 'Failed to check out branch.' );
 		}
 
 		$message = <<<EOT
@@ -155,13 +172,6 @@ EOT;
 			Logger::error( 'Failed to push changes to origin.' );
 		}
 
-		if ( $existing_PR_branch && $this->isGitLab() ) {
-			// Add comment to existing PR with $message
-			$commitSha = exec( 'git rev-parse HEAD', $output_lines, $return_code);
-			$this->addCommitComment( $message, $this->project(), $commitSha );
-			Logger::success( sprintf( 'Updated %s with composer.lock changes.', $this->getRequestType() ) );
-			return;
-		}
 		if ( $this->isGitHub() ) {
 			$cmd = 'hub pull-request -m ' . escapeshellarg( $message );
 		} elseif ( $this->isGitLab() ) {
@@ -195,6 +205,50 @@ EOT;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Closes an existing PR branch.
+	 *
+	 * @param string $branch_name Name of the branch.
+	 * @return boolean
+	 */
+	private function closeExistingPRBranch( $branch_name ) {
+		if ( $this->isGitHub() ) {
+			$cmd = 'hub pr list --format="%i" --state=open';
+		} elseif ( $this->isGitLab() ) {
+			$cmd = 'lab mr list';
+		} else {
+			return false;
+		}
+		exec($cmd, $output_lines, $return_code);
+		if ( 0 !== $return_code ) {
+			Logger::error( sprintf( 'Unable to check for existing %ss', $this->getRequestType() ) );
+		}
+		$number = false;
+		foreach( $output_lines as $line ) {
+			if ( preg_match( '/^\#([\d]+)/', $line, $matches ) ) {
+				$number = $matches[1];
+			}
+		}
+		if ( ! $number ) {
+			Logger::error( sprintf( 'Unable to find existing %s number', $this->getRequestType() ) );
+		}
+		if ( $this->isGitHub() ) {
+			$cmd = sprintf( 'hub api -XPATCH repos/%s/issues/%d -f state=closed', $this->project(), $number );
+		} elseif ( $this->isGitLab() ) {
+			$cmd = sprintf( 'lab mr close %d', $number );
+		}
+		exec($cmd, $output_lines, $return_code);
+		if ( 0 !== $return_code ) {
+			Logger::error( sprintf( 'Unable to close existing %s', $this->getRequestType() ) );
+		}
+		$cmd = 'git push origin --delete ' . escapeshellarg( $branch_name );
+		Logger::info( $cmd );
+		passthru( $cmd, $return_code );
+		if ( 0 !== $return_code ) {
+			Logger::error( 'Failed to delete origin branch.' );
+		}
 	}
 
 	/**
@@ -241,6 +295,19 @@ EOT;
 	 */
 	private function getRequestType() {
 		return $this->isGitLab() ? 'merge request' : 'pull request';
+	}
+
+	/**
+	 * Runs `composer install`.
+	 */
+	private function runComposerInstall() {
+		$args = getenv( 'CLU_COMPOSER_INSTALL_ARGS' ) ? : '--no-dev --no-interaction';
+		$cmd  = 'composer install ' . $args;
+		Logger::info( $cmd );
+		passthru( $cmd, $return_code );
+		if ( 0 !== $return_code ) {
+			Logger::error( 'Composer failed to install dependencies.' );
+		}
 	}
 
 	private function addCommitComment( $message, $project, $commitSha ) {
