@@ -43,7 +43,7 @@ class Runner {
 		}
 
 		// Determine whether there is an existing open PR with Composer updates
-		$existing_PR_branch = $this->checkExistingPRBranch();
+		$existing_PR_branch = $this->checkExistingPRBranch( 'branch' );
 
 		if ( $existing_PR_branch ) {
 			exec( 'git rev-parse --abbrev-ref HEAD', $initial_branch, $return_code );
@@ -186,9 +186,15 @@ EOT;
 		Logger::success( sprintf( 'Created %s with composer.lock changes.', $this->getRequestType() ) );
 	}
 
-	private function checkExistingPRBranch() {
+	/**
+	 * Checks to see if there's an existing PR branch.
+	 *
+	 * @param string $type Type of value to return.
+	 * @return mixed
+	 */
+	private function checkExistingPRBranch( $type ) {
 		if ( $this->isGitHub() ) {
-			$cmd = 'hub pr list --format="%t%n" --state=open';
+			$cmd = 'hub pr list --format="%i %t%n" --state=open';
 		} elseif ( $this->isGitLab() ) {
 			$cmd = 'lab mr list';
 		} else {
@@ -199,9 +205,13 @@ EOT;
 			Logger::error( sprintf( 'Unable to check for existing %ss', $this->getRequestType() ) );
 		}
 		foreach ($output_lines as $line) {
-			if (preg_match('%Update Composer dependencies \(([0-9-]*)\)%', $line, $matches)) {
-				// We will presume the branch name is 'clu-' followed by the date in the issue title.
-				return 'clu-' . $matches[1];
+			if (preg_match('%#([\d]+) Update Composer dependencies \(([0-9-]*)\)%', $line, $matches)) {
+				if ( 'number' === $type ) {
+					return $matches[1];
+				} elseif ( 'branch' === $type ) {
+					// We will presume the branch name is 'clu-' followed by the date in the issue title.
+					return 'clu-' . $matches[2];
+				}
 			}
 		}
 		return false;
@@ -214,23 +224,7 @@ EOT;
 	 * @return boolean
 	 */
 	private function closeExistingPRBranch( $branch_name ) {
-		if ( $this->isGitHub() ) {
-			$cmd = 'hub pr list --format="%i" --state=open';
-		} elseif ( $this->isGitLab() ) {
-			$cmd = 'lab mr list';
-		} else {
-			return false;
-		}
-		exec($cmd, $output_lines, $return_code);
-		if ( 0 !== $return_code ) {
-			Logger::error( sprintf( 'Unable to check for existing %ss', $this->getRequestType() ) );
-		}
-		$number = false;
-		foreach( $output_lines as $line ) {
-			if ( preg_match( '/^\#([\d]+)/', $line, $matches ) ) {
-				$number = $matches[1];
-			}
-		}
+		$number = $this->checkExistingPRBranch( 'number' );
 		if ( ! $number ) {
 			Logger::error( sprintf( 'Unable to find existing %s number', $this->getRequestType() ) );
 		}
@@ -241,7 +235,7 @@ EOT;
 		}
 		exec($cmd, $output_lines, $return_code);
 		if ( 0 !== $return_code ) {
-			Logger::error( sprintf( 'Unable to close existing %s', $this->getRequestType() ) );
+			Logger::error( sprintf( 'Unable to close existing %s: %s', $this->getRequestType(), implode( PHP_EOL, $output_lines ) ) );
 		}
 		$cmd = 'git push origin --delete ' . escapeshellarg( $branch_name );
 		Logger::info( $cmd );
