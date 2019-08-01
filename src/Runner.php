@@ -235,7 +235,7 @@ EOT;
 		}
 		exec($cmd, $output_lines, $return_code);
 		if ( 0 !== $return_code ) {
-			Logger::error( sprintf( 'Unable to close existing %s', $this->getRequestType() ) );
+			Logger::error( sprintf( 'Unable to close existing %s: %s', $this->getRequestType(), implode( PHP_EOL, $output_lines ) ) );
 		}
 		$cmd = 'git push origin --delete ' . escapeshellarg( $branch_name );
 		Logger::info( $cmd );
