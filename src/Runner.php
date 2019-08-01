@@ -229,7 +229,7 @@ EOT;
 			Logger::error( sprintf( 'Unable to find existing %s number', $this->getRequestType() ) );
 		}
 		if ( $this->isGitHub() ) {
-			$cmd = sprintf( 'hub api -XPATCH repos/%s/issues/%d -f state=closed', $this->project(), $number );
+			$cmd = sprintf( 'hub api -XPATCH repos/{owner}/{repo}/issues/%d -f state=closed', $number );
 		} elseif ( $this->isGitLab() ) {
 			$cmd = sprintf( 'lab mr close %d', $number );
 		}
@@ -302,12 +302,6 @@ EOT;
 		passthru( $cmd, $return_code );
 		if ( 0 !== $return_code ) {
 			Logger::error( 'Composer failed to install dependencies.' );
-		}
-	}
-
-	private function project() {
-		if ( preg_match( '#([^/:]*/.*)$#', $this->repo_url, $matches ) ) {
-			return preg_replace( '#\.git$#', '', $matches[1] );
 		}
 	}
 
