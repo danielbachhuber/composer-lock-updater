@@ -56,11 +56,8 @@ class Runner {
 			passthru( 'git checkout ' . $existing_PR_branch );
 			// Check to see if there are any outdated dependencies.
 			$this->runComposerInstall();
-			exec( 'composer outdated', $output, $return_code );
-			if ( 0 !== $return_code ) {
-				Logger::error( 'Failed to run composer outdated.' );
-			}
-			if ( empty( $output ) ) {
+			$output = $this->runComposerUpdate('--dry-run');
+			if ( stripos( $output, 'Nothing to install or update' ) ) {
 				Logger::info('Exiting since no updates were detected on existing PR branch.');
 				exit(0);
 			}
@@ -88,33 +85,7 @@ class Runner {
 		}
 
 		// Run composer update, but capture output for the commit message if needed.
-		$args = getenv( 'CLU_COMPOSER_UPDATE_ARGS' ) ? : '--no-progress --no-dev --no-interaction';
-		$cmd  = 'composer update';
-		Logger::info( $cmd );
-		$cmd = 'cd ' . escapeshellarg( $target_dir ) . '; ' . $cmd;
-		$proc = proc_open( $cmd, array(
-			0 => array( 'pipe', 'r' ),
-			1 => array( 'pipe', 'w' ),
-			2 => array( 'pipe', 'w' ),
-		), $pipes );
-		$status = proc_get_status( $proc );
-		while( $status['running'] ) {
-			$status = proc_get_status( $proc );
-		}
-		$stdout = stream_get_contents( $pipes[1] );
-		if ( ! empty( $stdout ) ) {
-			Logger::info( $stdout );
-		}
-		$stderr = stream_get_contents( $pipes[2] );
-		if ( ! empty( $stderr ) ) {
-			Logger::info( $stderr );
-		}
-		proc_close( $proc );
-		if ( 0 !== $status['exitcode'] ) {
-			Logger::error( 'Composer failed to update dependencies.' );
-		}
-
-		$update_message = trim( $stderr );
+		$update_message = $this->runComposerUpdate();
 
 		// Check whether composer.lock was modifed.
 		$output = array();
@@ -303,6 +274,40 @@ EOT;
 		if ( 0 !== $return_code ) {
 			Logger::error( 'Composer failed to install dependencies.' );
 		}
+	}
+
+	/**
+	 * Runs `composer update`.
+	 *
+	 * @param string $extra_args Any extra arguments to pass to the command.
+	 */
+	private function runComposerUpdate( $extra_args = '' ) {
+		$args = getenv( 'CLU_COMPOSER_UPDATE_ARGS' ) ? : '--no-progress --no-dev --no-interaction';
+		$cmd  = 'composer update ' . $args . ' ' . $extra_args;
+		Logger::info( $cmd );
+		$proc = proc_open( $cmd, array(
+			0 => array( 'pipe', 'r' ),
+			1 => array( 'pipe', 'w' ),
+			2 => array( 'pipe', 'w' ),
+		), $pipes );
+		$status = proc_get_status( $proc );
+		while( $status['running'] ) {
+			$status = proc_get_status( $proc );
+		}
+		$stdout = stream_get_contents( $pipes[1] );
+		if ( ! empty( $stdout ) ) {
+			Logger::info( $stdout );
+		}
+		$stderr = stream_get_contents( $pipes[2] );
+		if ( ! empty( $stderr ) ) {
+			Logger::info( $stderr );
+		}
+		proc_close( $proc );
+		if ( 0 !== $status['exitcode'] ) {
+			Logger::error( 'Composer failed to update dependencies.' );
+		}
+
+		return trim( $stderr );
 	}
 
 }
