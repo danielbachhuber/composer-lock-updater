@@ -56,9 +56,8 @@ class Runner {
 			passthru( 'git checkout ' . $existing_PR_branch );
 			// Check to see if there are any outdated dependencies.
 			$this->runComposerInstall();
-			$output = $this->runComposerUpdate('--dry-run');
-			if ( stripos( $output, 'Nothing to install or update' ) ) {
-				Logger::info('Exiting since no updates were detected on existing PR branch.');
+			$this->runComposerUpdate();
+			if ( ! $this->checkComposerLock() ) {
 				exit(0);
 			}
 			// Close the existing PR and delete its branch.
@@ -88,16 +87,9 @@ class Runner {
 		$update_message = $this->runComposerUpdate();
 
 		// Check whether composer.lock was modifed.
-		$output = array();
-		exec( 'git status -s composer.lock', $output, $return_code );
-		if ( 0 !== $return_code ) {
-			Logger::error( 'Failed to detect changes to composer.lock' );
+		if ( ! $this->checkComposerLock() ) {
+			exit(0);
 		}
-		if ( empty( $output ) ) {
-			Logger::success( 'No changes detected to composer.lock' );
-			return;
-		}
-		Logger::info( 'Detected changes to composer.lock' );
 
 		$git_name = getenv( 'CLU_GIT_NAME' ) ? : 'composer-lock-update';
 		exec( 'git config user.name ' . escapeshellarg( $git_name ), $_, $return_code );
@@ -261,6 +253,25 @@ EOT;
 	 */
 	private function getRequestType() {
 		return $this->isGitLab() ? 'merge request' : 'pull request';
+	}
+
+	/**
+	 * Checks a `composer.lock` file to see if changes were detected.
+	 *
+	 * @return boolean
+	 */
+	private function checkComposerLock() {
+		$output = array();
+		exec( 'git status -s composer.lock', $output, $return_code );
+		if ( 0 !== $return_code ) {
+			Logger::error( 'Failed to detect changes to composer.lock' );
+		}
+		if ( empty( $output ) ) {
+			Logger::success( 'No changes detected to composer.lock' );
+			return false;
+		}
+		Logger::info( 'Detected changes to composer.lock' );
+		return true;
 	}
 
 	/**
