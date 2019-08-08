@@ -76,13 +76,6 @@ class Runner {
 		// Perform an initial install to sanity check the package.
 		$this->runComposerInstall();
 
-		$cmd = 'composer outdated';
-		Logger::info( $cmd );
-		passthru( $cmd, $return_code );
-		if ( 0 !== $return_code ) {
-			Logger::error( 'Failed to run composer outdated.' );
-		}
-
 		// Run composer update, but capture output for the commit message if needed.
 		$update_message = $this->runComposerUpdate();
 
