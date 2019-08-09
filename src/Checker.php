@@ -11,6 +11,7 @@ class Checker {
 		$execs = [
 			'git',
 			'composer',
+			'tee',
 		];
 		if ( 'github' === $provider ) {
 			$execs[] = 'hub';
