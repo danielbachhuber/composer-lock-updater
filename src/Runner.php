@@ -63,7 +63,7 @@ class Runner {
 			// Close the existing PR and delete its branch.
 			$this->closeExistingPRBranch( $existing_PR_branch );
 			// Check out the initial branch locally and delete the local PR branch.
-			passthru( 'git checkout ' . $initial_branch );
+			passthru( 'git checkout -f ' . $initial_branch );
 			$cmd = 'git branch -D ' . escapeshellarg( $existing_PR_branch );
 			Logger::info( $cmd );
 			passthru( $cmd, $return_code );
