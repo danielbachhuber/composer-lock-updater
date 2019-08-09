@@ -282,36 +282,18 @@ EOT;
 
 	/**
 	 * Runs `composer update`.
-	 *
-	 * @param string $extra_args Any extra arguments to pass to the command.
 	 */
-	private function runComposerUpdate( $extra_args = '' ) {
+	private function runComposerUpdate() {
 		$args = getenv( 'CLU_COMPOSER_UPDATE_ARGS' ) ? : '--no-progress --no-dev --no-interaction';
-		$cmd  = 'composer update ' . $args . ' ' . $extra_args;
+		$cmd  = 'composer update ' . $args . ' 2>&1 | tee vendor/update.log';
 		Logger::info( $cmd );
-		$proc = proc_open( $cmd, array(
-			0 => array( 'pipe', 'r' ),
-			1 => array( 'pipe', 'w' ),
-			2 => array( 'pipe', 'w' ),
-		), $pipes );
-		$status = proc_get_status( $proc );
-		while( $status['running'] ) {
-			$status = proc_get_status( $proc );
-		}
-		$stdout = stream_get_contents( $pipes[1] );
-		if ( ! empty( $stdout ) ) {
-			Logger::info( $stdout );
-		}
-		$stderr = stream_get_contents( $pipes[2] );
-		if ( ! empty( $stderr ) ) {
-			Logger::info( $stderr );
-		}
-		proc_close( $proc );
-		if ( 0 !== $status['exitcode'] ) {
+		exec( $cmd, $output, $return_code );
+		if ( 0 !== $return_code ) {
 			Logger::error( 'Composer failed to update dependencies.' );
 		}
-
-		return trim( $stderr );
+		$output = implode( PHP_EOL, $output );
+		Logger::info( $output );
+		return $output;
 	}
 
 }
