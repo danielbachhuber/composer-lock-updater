@@ -7,7 +7,7 @@ Run composer-lock-updater in your CI system for bot-powered `composer.lock` pull
 
 When you run `clu`, it:
 
-1. Clones a given GitHub or GitLab repository to a working `/tmp/` directory.
+1. Clones a given git repository to a working `/tmp/` directory.
 2. Runs `composer update` within the working directory.
 3. Submits a pull request if changes are detected to a tracked `composer.lock` file.
 
@@ -26,6 +26,23 @@ composer-lock-updater is a PHP library that can be installed with Composer:
 composer-lock-updater depends on `composer` and `git` being available on the system. For use with GitHub, also install the official [`hub`](https://github.com/github/hub) CLI tool. For use with GitLab, you can use the unofficial [`lab`](https://github.com/zaquestion/lab) CLI tool that emulates `hub`.
 
 Both `hub` and `lab` will need to be authenticated with their respective services in order to create the pull/merge requests.
+
+#### Support for other providers
+Copy [clu-config.dist.json](clu-config.dist.json) to `$COMPOSER_HOME/clu-config.json` to add support for your git repository provider, or to make adjustments to the pull request commands. For example, to add support for a Bitbucket-Pantheon project using [Terminus Bitbucket Plugin](https://github.com/aaronbauman/terminus-bitbucket-plugin), create the following `clu-config.json`:
+```
+{
+  "providers": {
+    "terminus": {
+      "provider": "terminus",
+      "exec": ["terminus"],
+      "pr_create": "terminus pr-create --title=\"Update Composer dependencies\" --description %s",
+      "pr_list": "terminus pr-list",
+      "pr_close": "terminus pr-close %d",
+      "title_pattern": "%(\\d+)\\s+Update Composer dependencies\\s+clu\\-([0-9-]*)%"
+    }
+  }
+}
+```
 
 ## Using
 

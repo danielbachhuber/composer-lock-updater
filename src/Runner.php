@@ -15,9 +15,9 @@ class Runner {
 	 * Instantiate the runner.
 	 *
 	 * @param string $repo_url
-	 * @param string $provider
+	 * @param \stdClass $provider
 	 */
-	public function __construct( $repo_url, $provider ) {
+	public function __construct( $repo_url, \stdClass $provider ) {
 		$this->repo_url = $repo_url;
 		$this->provider = $provider;
 	}
@@ -128,11 +128,7 @@ EOT;
 			Logger::error( 'Failed to push changes to origin.' );
 		}
 
-		if ( $this->isGitHub() ) {
-			$cmd = 'hub pull-request -m ' . escapeshellarg( $message );
-		} elseif ( $this->isGitLab() ) {
-			$cmd = 'lab mr create -m ' . escapeshellarg( $message );
-		}
+		$cmd = sprintf($this->provider->pr_create, escapeshellarg( $message ));
 		Logger::info( $cmd );
 		passthru( $cmd, $return_code );
 		if ( 0 !== $return_code ) {
@@ -149,19 +145,13 @@ EOT;
 	 * @return mixed
 	 */
 	private function checkExistingPRBranch( $type ) {
-		if ( $this->isGitHub() ) {
-			$cmd = 'hub pr list --format="%i %t%n" --state=open';
-		} elseif ( $this->isGitLab() ) {
-			$cmd = 'lab mr list';
-		} else {
-			return false;
-		}
+		$cmd = $this->provider->pr_list;
 		exec($cmd, $output_lines, $return_code);
 		if ( 0 !== $return_code ) {
 			Logger::error( sprintf( 'Unable to check for existing %ss', $this->getRequestType() ) );
 		}
 		foreach ($output_lines as $line) {
-			if (preg_match('%#([\d]+) Update Composer dependencies \(([0-9-]*)\)%', $line, $matches)) {
+			if (preg_match($this->provider->title_pattern, $line, $matches)) {
 				if ( 'number' === $type ) {
 					return $matches[1];
 				} elseif ( 'branch' === $type ) {
@@ -184,11 +174,7 @@ EOT;
 		if ( ! $number ) {
 			Logger::error( sprintf( 'Unable to find existing %s number', $this->getRequestType() ) );
 		}
-		if ( $this->isGitHub() ) {
-			$cmd = sprintf( 'hub api -XPATCH repos/{owner}/{repo}/issues/%d -f state=closed', $number );
-		} elseif ( $this->isGitLab() ) {
-			$cmd = sprintf( 'lab mr close %d', $number );
-		}
+		$cmd = $this->provider->pr_close;
 		exec($cmd, $output_lines, $return_code);
 		if ( 0 !== $return_code ) {
 			Logger::error( sprintf( 'Unable to close existing %s #%d: %s', $this->getRequestType(), $number, implode( PHP_EOL, $output_lines ) ) );
@@ -222,30 +208,12 @@ EOT;
 	}
 
 	/**
-	 * Whether or not the current provider is GitHub.
-	 *
-	 * @return boolean
-	 */
-	private function isGitHub() {
-		return 'github' === $this->provider;
-	}
-
-	/**
-	 * Whether or not the current provider is GitLab.
-	 *
-	 * @return boolean
-	 */
-	private function isGitLab() {
-		return 'gitlab' === $this->provider;
-	}
-
-	/**
 	 * Returns 'pull request' or 'merge request', depending on provider.
 	 *
 	 * @return string
 	 */
 	private function getRequestType() {
-		return $this->isGitLab() ? 'merge request' : 'pull request';
+		return isset($this->provider->request_type) ? $this->provider->request_type : 'pull request';
 	}
 
 	/**
