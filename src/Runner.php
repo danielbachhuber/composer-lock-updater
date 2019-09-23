@@ -174,7 +174,7 @@ EOT;
 		if ( ! $number ) {
 			Logger::error( sprintf( 'Unable to find existing %s number', $this->getRequestType() ) );
 		}
-		$cmd = $this->provider->pr_close;
+		$cmd = sprintf( $this->provider->pr_close, $number );
 		exec($cmd, $output_lines, $return_code);
 		if ( 0 !== $return_code ) {
 			Logger::error( sprintf( 'Unable to close existing %s #%d: %s', $this->getRequestType(), $number, implode( PHP_EOL, $output_lines ) ) );
