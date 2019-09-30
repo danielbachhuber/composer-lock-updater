@@ -12,17 +12,19 @@ if ( file_exists( $path = __DIR__ . '/../vendor/autoload.php' )
 
 // Simple argv parsing
 $optind = null;
+$config = \CLU\Checker::get_config();
 $opts = getopt('', ['provider::','security-only'], $optind);
 if ( isset( $opts['provider'] ) ) {
-	if ( ! in_array( $opts['provider'], [ 'github', 'gitlab' ], true ) ) {
-		CLU\Logger::error( "--[provider]=<provider> must be 'github' or 'gitlab'" );
-	}
-	$provider = $opts['provider'];
+  $provider = $opts['provider'];
 } else {
 	$provider = 'github';
 }
 
-\CLU\Checker::check_executables( $provider );
+if ( empty($config->providers[$provider]) ) {
+  CLU\Logger::error( "--[provider]=<provider> must be one of: " . implode(', ', array_keys($config->providers)));
+}
+
+\CLU\Checker::check_executables( $config->providers[$provider] );
 
 $pos_args = array_slice($argv, $optind);
 
@@ -47,5 +49,5 @@ if ( ! $repo_local_working_copy ) {
 	$repo_local_working_copy = $cloner->cloneRepo( $repo_url );
 }
 
-$runner = new CLU\Runner( $repo_url, $provider );
+$runner = new CLU\Runner( $repo_url, $config->providers[$provider]);
 $runner->start( $repo_local_working_copy, $opts );

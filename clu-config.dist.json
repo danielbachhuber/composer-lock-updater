@@ -1,0 +1,21 @@
+{
+  "providers": {
+    "github": {
+      "provider": "github",
+      "exec": ["hub"],
+      "pr_create": "hub pull-request -m %s",
+      "pr_list": "hub pr list --format=\",%i %t%n\" --state=open",
+      "pr_close": "hub api -XPATCH repos/{owner}/{repo}/issues/%d -f state=closed",
+      "title_pattern": "%#([\\d]+) Update Composer dependencies \\(([0-9-]*)\\)%"
+    },
+    "gitlab": {
+      "provider": "gitlab",
+      "exec": ["lab"],
+      "pr_create": "lab mr create -m %s",
+      "pr_list": "lab mr list",
+      "pr_close": "lab mr close %d",
+      "request_type": "merge request",
+      "title_pattern": "%#([\\d]+) Update Composer dependencies \\(([0-9-]*)\\)%"
+    }
+  }
+}
