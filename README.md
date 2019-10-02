@@ -37,7 +37,7 @@ Copy [clu-config.dist.json](clu-config.dist.json) to `$COMPOSER_HOME/clu-config.
       "exec": ["terminus"],
       "pr_create": "terminus pr-create --title=\"Update Composer dependencies\" --description %s",
       "pr_list": "terminus pr-list",
-      "pr_close": "terminus pr-close %d",
+      "pr_close": "terminus pr-close %d -y",
       "title_pattern": "%(\\d+)\\s+Update Composer dependencies\\s+clu\\-([0-9-]*)%"
     }
   }
