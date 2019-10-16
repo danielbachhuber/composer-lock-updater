@@ -203,7 +203,7 @@ EOT;
 			return '';
 		}
 
-		exec( 'security-checker.phar security:check ' . $composerLockPath, $output, $is_vulnerable );
+		exec( 'security-checker.phar security:check --no-ansi ' . $composerLockPath, $output, $is_vulnerable );
 		return "\n\n" . implode("\n", $output);
 	}
 
