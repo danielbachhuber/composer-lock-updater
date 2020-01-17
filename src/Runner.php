@@ -253,13 +253,14 @@ EOT;
 	 */
 	private function runComposerUpdate() {
 		$args = getenv( 'CLU_COMPOSER_UPDATE_ARGS' ) ? : '--no-progress --no-dev --no-interaction';
-		$cmd  = 'composer update ' . $args . ' 2>&1 | tee vendor/update.log';
+		$cmd  = 'composer update ' . $args . ' 2>&1';
 		Logger::info( $cmd );
 		exec( $cmd, $output, $return_code );
+		$output = implode( PHP_EOL, $output );
+		file_put_contents('vendor/update.log', $output);
 		if ( 0 !== $return_code ) {
 			Logger::error( 'Composer failed to update dependencies.' );
 		}
-		$output = implode( PHP_EOL, $output );
 		Logger::info( $output );
 		return $output;
 	}
