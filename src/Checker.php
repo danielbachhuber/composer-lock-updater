@@ -20,6 +20,13 @@ class Checker {
 			}
 		}
 		Logger::info( 'Found required executables on system: ' . implode( ', ', $execs ) );
+
+		$output = shell_exec( 'set -o' );
+		if ( false !== stripos( $output, 'pipefail' ) ) {
+			Logger::info( 'Found required pipefail option in shell.' );
+		} else {
+			Logger::error( "Missing required 'pipefail' option in shell." );
+		}
 	}
 
 	public static function get_config() {
