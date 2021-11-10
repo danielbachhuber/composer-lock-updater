@@ -253,7 +253,7 @@ EOT;
 	 */
 	private function runComposerUpdate() {
 		$args = getenv( 'CLU_COMPOSER_UPDATE_ARGS' ) ? : '--no-progress --no-dev --no-interaction';
-		$cmd  = 'set -o pipefail && composer update ' . $args . ' 2>&1 | tee vendor/update.log';
+		$cmd  = 'bash -c "set -o pipefail && composer update ' . $args . ' 2>&1 | tee vendor/update.log"';
 		Logger::info( $cmd );
 		exec( $cmd, $output, $return_code );
 		if ( 0 !== $return_code ) {

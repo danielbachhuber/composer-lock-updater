@@ -9,6 +9,7 @@ class Checker {
 	 */
 	public static function check_executables( \stdClass $provider ) {
 		$execs = array_merge([
+			'bash',
 			'git',
 			'composer',
 			'tee',
@@ -21,7 +22,7 @@ class Checker {
 		}
 		Logger::info( 'Found required executables on system: ' . implode( ', ', $execs ) );
 
-		$output = shell_exec( 'set -o' );
+		$output = shell_exec( 'bash -c "set -o"' );
 		if ( false !== stripos( $output, 'pipefail' ) ) {
 			Logger::info( 'Found required pipefail option in shell.' );
 		} else {
